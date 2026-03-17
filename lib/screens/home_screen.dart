@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
 import '../providers/locale_provider.dart';
@@ -87,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -123,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         'الهوية الرقمية السورية',
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -131,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Text(
                         'Syrian Digital Identity',
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withOpacity(0.6),
                         ),
@@ -282,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       title,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -290,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Text(
                       subtitle,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withOpacity(0.7),
                       ),
@@ -342,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? const Icon(Icons.check, color: AppColors.success, size: 20)
                   : Text(
                       '$step',
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -357,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -365,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Text(
                   subtitle,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
@@ -403,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
           Text(
             l10n.scanPassport,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 18,
               color: AppColors.textSecondary,
             ),

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
@@ -229,7 +228,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                   Text(
                     l10n.scanPassportDesc,
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -246,7 +245,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                     ),
                     child: Text(
                       'P<SYR<<SURNAME<<GIVEN<NAMES<<<<<<<<<<<<\n<<<<<<XX12345678<<<689976464<2467<<<<24',
-                      style: GoogleFonts.robotoMono(
+                      style: TextStyle(fontFamily: "Courier",
                         color: Colors.white.withOpacity(0.5),
                         fontSize: 10,
                       ),
@@ -260,7 +259,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                         color: AppColors.accent),
                     label: Text(
                       l10n.enterManually,
-                      style: const TextStyle(color: AppColors.accent),
+                      style: TextStyle(color: AppColors.accent),
                     ),
                     onPressed: () {
                       // TODO: Manual entry screen

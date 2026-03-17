@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
@@ -11,6 +10,9 @@ import 'utils/constants.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Prevent Google Fonts from fetching over HTTP — use bundled fonts only
+
   runApp(
     MultiProvider(
       providers: [
@@ -35,16 +37,8 @@ class SyrianDigitalIdApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       locale: localeProvider.locale,
-      supportedLocales: const [
-        Locale('ar'),
-        Locale('en'),
-      ],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: const SplashScreen(),
     );
   }

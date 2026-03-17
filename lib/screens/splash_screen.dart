@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import 'language_screen.dart';
 
@@ -136,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
                   // Arabic title
                   Text(
                     'الهوية الرقمية السورية',
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -149,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen>
                   // English subtitle
                   Text(
                     'Syrian Digital Identity',
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withOpacity(0.7),

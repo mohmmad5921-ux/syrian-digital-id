@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
@@ -163,7 +162,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen>
                     const Spacer(),
                     Text(
                       l10n.readNFC,
-                      style: GoogleFonts.cairo(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -238,7 +237,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen>
                 const SizedBox(height: 16),
                 Text(
                   _statusText,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.8),
                   ),
@@ -258,7 +257,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen>
                     child: Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                       ),
@@ -293,7 +292,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen>
                             Text(
                               l10n.readNFCDesc,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.inter(
+                              style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.white.withOpacity(0.8),
                               ),
@@ -302,7 +301,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen>
                             Text(
                               l10n.keepSteady,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.inter(
+                              style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white.withOpacity(0.5),
                               ),
@@ -321,7 +320,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen>
                           icon: const Icon(Icons.nfc_rounded),
                           label: Text(
                             l10n.readNFC,
-                            style: const TextStyle(fontSize: 18),
+                            style: TextStyle(fontSize: 18),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.accent,

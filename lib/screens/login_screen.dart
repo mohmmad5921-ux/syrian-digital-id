@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
@@ -84,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 Text(
                   l10n.login,
-                  style: GoogleFonts.cairo(
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -148,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 padding: const EdgeInsets.only(bottom: 16),
                                 child: Text(
                                   auth.error!,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.error,
                                     fontSize: 14,
                                   ),
@@ -209,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: Text(
                         l10n.register,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.accent,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,

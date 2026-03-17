@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
 import '../utils/constants.dart';
@@ -114,7 +113,7 @@ class _LanguageScreenState extends State<LanguageScreen>
                   // Title
                   Text(
                     'اختر اللغة',
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -124,7 +123,7 @@ class _LanguageScreenState extends State<LanguageScreen>
                   const SizedBox(height: 8),
                   Text(
                     'Choose Language',
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withOpacity(0.7),
@@ -176,7 +175,7 @@ class _LanguageScreenState extends State<LanguageScreen>
                         ),
                         child: Text(
                           _selectedLanguage == 'ar' ? 'متابعة' : 'Continue',
-                          style: GoogleFonts.inter(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -226,7 +225,7 @@ class _LanguageScreenState extends State<LanguageScreen>
             ),
             child: Row(
               children: [
-                Text(icon, style: const TextStyle(fontSize: 32)),
+                Text(icon, style: TextStyle(fontSize: 32)),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -234,7 +233,7 @@ class _LanguageScreenState extends State<LanguageScreen>
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -242,7 +241,7 @@ class _LanguageScreenState extends State<LanguageScreen>
                       ),
                       Text(
                         subtitle,
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           fontSize: 14,
                           color: Colors.white.withOpacity(0.6),
                         ),

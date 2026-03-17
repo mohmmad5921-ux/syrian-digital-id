@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -61,7 +60,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
                   const Spacer(),
                   Text(
                     l10n.digitalId,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                     ),
@@ -95,7 +94,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
                           const SizedBox(width: 6),
                           Text(
                             l10n.verifiedId,
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               color: AppColors.success,
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -124,7 +123,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
                     const SizedBox(height: 12),
                     Text(
                       'Tap to flip card',
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
@@ -259,7 +258,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
                         children: [
                           Text(
                             'الهوية الرقمية السورية',
-                            style: GoogleFonts.cairo(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.accent,
                               fontWeight: FontWeight.w600,
@@ -268,7 +267,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
                           const SizedBox(height: 4),
                           Text(
                             passportData?.fullName ?? 'FULL NAME',
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -278,7 +277,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
                           ),
                           Text(
                             passportData?.nationality ?? 'SYR',
-                            style: GoogleFonts.inter(
+                            style: TextStyle(
                               fontSize: 14,
                               color: Colors.white.withOpacity(0.7),
                             ),
@@ -349,7 +348,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
           children: [
             Text(
               l10n.verificationCode,
-              style: GoogleFonts.inter(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -371,7 +370,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
             const SizedBox(height: 8),
             Text(
               'SYR-000001',
-              style: GoogleFonts.robotoMono(
+              style: TextStyle(fontFamily: "Courier",
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -390,7 +389,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 10,
             color: Colors.white.withOpacity(0.5),
             fontWeight: FontWeight.w500,
@@ -400,7 +399,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
         const SizedBox(height: 2),
         Text(
           value,
-          style: GoogleFonts.robotoMono(
+          style: TextStyle(fontFamily: "Courier",
             fontSize: 13,
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -424,7 +423,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
         icon: Icon(icon, size: 24),
         label: Text(
           label,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -485,14 +484,14 @@ class _DigitalIdScreenState extends State<DigitalIdScreen>
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
           ),
           Text(
             value,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,

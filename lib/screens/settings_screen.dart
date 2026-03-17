@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
@@ -26,7 +25,7 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 l10n.settings,
-                style: GoogleFonts.cairo(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                 ),
@@ -60,7 +59,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         child: Text(
                           locale.isArabic ? 'العربية' : 'English',
-                          style: GoogleFonts.inter(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
@@ -133,14 +132,14 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'الهوية الرقمية السورية',
-                      style: GoogleFonts.cairo(
+                      style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                       ),
                     ),
                     Text(
                       'v1.0.0',
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary.withOpacity(0.5),
                       ),
@@ -184,7 +183,7 @@ class SettingsScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: iconColor ?? AppColors.textPrimary,
