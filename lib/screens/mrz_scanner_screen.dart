@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:provider/provider.dart';
 import 'package:syrian_digital_id/l10n/generated/app_localizations.dart';
 import '../models/passport_data.dart';
 import '../providers/passport_provider.dart';
 import '../utils/constants.dart';
+import '../utils/mrz_parser.dart';
 import 'nfc_reader_screen.dart';
 
 class MrzScannerScreen extends StatefulWidget {
@@ -17,10 +19,14 @@ class MrzScannerScreen extends StatefulWidget {
 
 class _MrzScannerScreenState extends State<MrzScannerScreen> {
   CameraController? _cameraController;
+  TextRecognizer? _textRecognizer;
   bool _isCameraReady = false;
-  bool _showManualEntry = false;
+  bool _isProcessing = false;
+  bool _mrzFound = false;
   String? _cameraError;
+  String _statusText = '';
 
+  // Manual entry controllers
   final _docNumberController = TextEditingController();
   final _dobController = TextEditingController();
   final _expiryController = TextEditingController();
@@ -36,32 +42,109 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        setState(() {
-          _cameraError = 'No camera available';
-          _showManualEntry = true;
-        });
+        setState(() => _cameraError = 'No camera available');
         return;
       }
 
       _cameraController = CameraController(
         cameras.first,
         ResolutionPreset.medium,
+        imageFormatGroup: Platform.isIOS
+            ? ImageFormatGroup.bgra8888
+            : ImageFormatGroup.nv21,
         enableAudio: false,
       );
 
       await _cameraController!.initialize();
-      if (mounted) setState(() => _isCameraReady = true);
+      if (!mounted) return;
+
+      _textRecognizer = TextRecognizer();
+      setState(() => _isCameraReady = true);
+
+      // Start scanning after brief delay
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted && _cameraController != null && _cameraController!.value.isInitialized) {
+        _cameraController!.startImageStream(_processImage);
+      }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _cameraError = 'Camera: $e';
-          _showManualEntry = true;
-        });
+        setState(() => _cameraError = '$e');
       }
     }
   }
 
-  void _proceed() {
+  void _processImage(CameraImage image) async {
+    if (_isProcessing || _mrzFound || _textRecognizer == null) return;
+    _isProcessing = true;
+
+    try {
+      final inputImage = _convertCameraImage(image);
+      if (inputImage == null) {
+        _isProcessing = false;
+        return;
+      }
+
+      final recognized = await _textRecognizer!.processImage(inputImage);
+      final mrzLines = MrzParser.extractMrzLines(recognized.text);
+
+      if (mrzLines != null && mrzLines.length >= 2) {
+        final parsed = MrzParser.parseTD3(mrzLines[0], mrzLines[1]);
+        if (parsed != null) {
+          _mrzFound = true;
+          try { await _cameraController?.stopImageStream(); } catch (_) {}
+
+          final passportData = PassportData(
+            documentNumber: parsed['documentNumber'],
+            fullName: parsed['fullName'],
+            nationality: parsed['nationality'],
+            dateOfBirth: parsed['dateOfBirth'],
+            dateOfExpiry: parsed['dateOfExpiry'],
+            sex: parsed['sex'],
+            issuingState: parsed['issuingState'],
+            mrzLine1: mrzLines[0],
+            mrzLine2: mrzLines[1],
+          );
+
+          if (mounted) {
+            Provider.of<PassportProvider>(context, listen: false)
+                .setPassportData(passportData);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const NfcReaderScreen()),
+            );
+          }
+          return;
+        }
+      }
+
+      // Update status
+      if (mounted && recognized.text.isNotEmpty) {
+        setState(() => _statusText = 'Scanning...');
+      }
+    } catch (_) {}
+    _isProcessing = false;
+  }
+
+  InputImage? _convertCameraImage(CameraImage image) {
+    try {
+      final bytes = image.planes.fold<List<int>>(
+        <int>[], (prev, plane) => prev..addAll(plane.bytes));
+
+      return InputImage.fromBytes(
+        bytes: bytes as dynamic,
+        metadata: InputImageMetadata(
+          size: Size(image.width.toDouble(), image.height.toDouble()),
+          rotation: InputImageRotation.rotation0deg,
+          format: Platform.isIOS ? InputImageFormat.bgra8888 : InputImageFormat.nv21,
+          bytesPerRow: image.planes[0].bytesPerRow,
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _proceedManual() {
     final doc = _docNumberController.text.trim();
     final dob = _dobController.text.trim();
     final exp = _expiryController.text.trim();
@@ -78,16 +161,14 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
     Provider.of<PassportProvider>(context, listen: false).setPassportData(
       PassportData(documentNumber: doc, dateOfBirth: dob, dateOfExpiry: exp),
     );
-
     Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const NfcReaderScreen()),
-    );
+      context, MaterialPageRoute(builder: (_) => const NfcReaderScreen()));
   }
 
   @override
   void dispose() {
-    _cameraController?.dispose();
+    try { _cameraController?.dispose(); } catch (_) {}
+    try { _textRecognizer?.close(); } catch (_) {}
     _docNumberController.dispose();
     _dobController.dispose();
     _expiryController.dispose();
@@ -103,63 +184,68 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
       backgroundColor: Colors.black,
       body: Column(
         children: [
-          // Camera preview section (top half)
+          // Camera preview (top)
           Expanded(
-            flex: _showManualEntry ? 0 : 2,
-            child: _showManualEntry
-                ? const SizedBox.shrink()
-                : Stack(
-                    children: [
-                      if (_isCameraReady && _cameraController != null)
-                        Positioned.fill(
-                          child: CameraPreview(_cameraController!),
-                        )
-                      else
-                        const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        ),
+            flex: 2,
+            child: Stack(
+              children: [
+                if (_isCameraReady && _cameraController != null)
+                  Positioned.fill(child: CameraPreview(_cameraController!))
+                else if (_cameraError != null)
+                  Center(child: Text(_cameraError!,
+                      style: const TextStyle(color: Colors.red)))
+                else
+                  const Center(child: CircularProgressIndicator(color: Colors.white)),
 
-                      // Passport frame overlay
-                      if (_isCameraReady)
-                        Positioned.fill(
-                          child: CustomPaint(painter: _PassportOverlayPainter()),
-                        ),
+                if (_isCameraReady)
+                  Positioned.fill(child: CustomPaint(painter: _PassportOverlayPainter())),
 
-                      // Back button
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        child: SafeArea(
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ),
-                      ),
-
-                      // Guide text
-                      Positioned(
-                        bottom: 16,
-                        left: 16,
-                        right: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            l10n.scanPassportDesc,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ),
-                      ),
-                    ],
+                // Back button
+                Positioned(
+                  top: 0, left: 0,
+                  child: SafeArea(
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
+                ),
+
+                // Scanning status
+                Positioned(
+                  bottom: 16, left: 16, right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_statusText.isNotEmpty) ...[
+                          const SizedBox(
+                            width: 16, height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2, color: AppColors.accent),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          _isCameraReady
+                              ? (isArabic ? 'وجّه الكاميرا على سطور MRZ' : 'Point camera at MRZ lines')
+                              : (isArabic ? 'جاري تشغيل الكاميرا...' : 'Starting camera...'),
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          // Manual entry section (bottom half)
+          // Manual entry (bottom)
           Expanded(
             flex: 3,
             child: Container(
@@ -172,78 +258,52 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Handle bar
                     Center(
                       child: Container(
-                        width: 40,
-                        height: 4,
+                        width: 40, height: 4,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                          borderRadius: BorderRadius.circular(2)),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isArabic ? 'أو أدخل يدوياً' : 'Or enter manually',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
 
-                    // Title
-                    Text(
-                      isArabic ? 'أدخل بيانات الجواز' : 'Enter passport data',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isArabic
-                          ? 'من سطور MRZ أسفل صفحة الصورة'
-                          : 'From MRZ lines at bottom of photo page',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Document Number
                     _buildField(l10n.documentNumber, _docNumberController,
                         isArabic ? 'مثال: N12345678' : 'e.g. N12345678',
                         Icons.badge_outlined, TextInputType.text),
-                    const SizedBox(height: 14),
-
-                    // Date of Birth
+                    const SizedBox(height: 12),
                     _buildField(l10n.dateOfBirth, _dobController,
-                        'YYMMDD (${isArabic ? "مثال" : "e.g."} 900115)',
-                        Icons.cake_outlined, TextInputType.number, maxLen: 6),
-                    const SizedBox(height: 14),
-
-                    // Date of Expiry
+                        'YYMMDD', Icons.cake_outlined, TextInputType.number, maxLen: 6),
+                    const SizedBox(height: 12),
                     _buildField(l10n.dateOfExpiry, _expiryController,
-                        'YYMMDD (${isArabic ? "مثال" : "e.g."} 301231)',
-                        Icons.event_outlined, TextInputType.number, maxLen: 6),
+                        'YYMMDD', Icons.event_outlined, TextInputType.number, maxLen: 6),
 
                     if (_formError != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(_formError!, style: const TextStyle(color: AppColors.error),
                           textAlign: TextAlign.center),
                     ],
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                    // Next button
                     ElevatedButton.icon(
-                      onPressed: _proceed,
+                      onPressed: _proceedManual,
                       icon: const Icon(Icons.nfc, color: Colors.white),
                       label: Text(
                         isArabic ? 'التالي: قراءة شريحة الجواز' : 'Next: Read Passport Chip',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
                   ],
@@ -262,19 +322,17 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           keyboardType: type,
           maxLength: maxLen,
           textCapitalization: type == TextInputType.text
-              ? TextCapitalization.characters
-              : TextCapitalization.none,
+              ? TextCapitalization.characters : TextCapitalization.none,
           decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: Icon(icon),
+            hintText: hint, prefixIcon: Icon(icon),
             counterText: '',
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ],
@@ -288,31 +346,30 @@ class _PassportOverlayPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.black.withOpacity(0.4)
       ..style = PaintingStyle.fill;
+    final fw = size.width * 0.85, fh = fw * 0.65;
+    final l = (size.width - fw) / 2, t = (size.height - fh) / 2;
 
-    final fw = size.width * 0.85;
-    final fh = fw * 0.65;
-    final l = (size.width - fw) / 2;
-    final t = (size.height - fh) / 2;
+    canvas.drawPath(
+      Path()
+        ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+        ..addRRect(RRect.fromRectAndRadius(
+            Rect.fromLTWH(l, t, fw, fh), const Radius.circular(12)))
+        ..fillType = PathFillType.evenOdd,
+      paint,
+    );
 
-    final path = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(l, t, fw, fh), const Radius.circular(12)))
-      ..fillType = PathFillType.evenOdd;
-    canvas.drawPath(path, paint);
-
-    final bp = Paint()
-      ..color = Colors.white.withOpacity(0.8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawRRect(RRect.fromRectAndRadius(
-      Rect.fromLTWH(l, t, fw, fh), const Radius.circular(12)), bp);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+          Rect.fromLTWH(l, t, fw, fh), const Radius.circular(12)),
+      Paint()
+        ..color = Colors.white.withOpacity(0.8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
 
     final cp = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
+      ..color = Colors.white ..style = PaintingStyle.stroke
+      ..strokeWidth = 4 ..strokeCap = StrokeCap.round;
     const c = 25.0;
     canvas.drawLine(Offset(l, t + c), Offset(l, t), cp);
     canvas.drawLine(Offset(l, t), Offset(l + c, t), cp);
